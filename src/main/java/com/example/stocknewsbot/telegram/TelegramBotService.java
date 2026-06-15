@@ -1,5 +1,7 @@
 package com.example.stocknewsbot.telegram;
 
+import com.example.stocknewsbot.domain.Subscription;
+import com.example.stocknewsbot.subscription.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -15,10 +17,12 @@ public class TelegramBotService {
     private static final Logger log = LoggerFactory.getLogger(TelegramBotService.class);
 
     private final TelegramClient telegramClient;
+    private final SubscriptionService subscriptionService;
     private long offset = 0;
 
-    public TelegramBotService(TelegramClient telegramClient) {
+    public TelegramBotService(TelegramClient telegramClient, SubscriptionService subscriptionService) {
         this.telegramClient = telegramClient;
+        this.subscriptionService = subscriptionService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -53,10 +57,15 @@ public class TelegramBotService {
 
         log.debug("수신 chatId={} text={}", chatId, text);
 
-        if (text.startsWith("/start")) {
-            sendHelp(chatId);
-        } else {
-            telegramClient.sendMessage(chatId,"알 수 없는 명령입니다. /start 으로 도움말을 확인하세요");
+        String[] parts = text.trim().split("\\s+");
+        String command = parts[0].toLowerCase();
+
+        switch (command) {
+            case "/start"   -> sendHelp(chatId);
+            case "/add"     -> handleAdd(chatId, parts);
+            case "/remove"  -> handleRemove(chatId, parts);
+            case "/list"     -> handleList(chatId);
+            default         -> telegramClient.sendMessage(chatId,"알 수 없는 명령입니다. /start 으로 도움말을 확인하세요");
         }
     }
 
@@ -79,5 +88,54 @@ public class TelegramBotService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private void handleAdd(long chatId, String[] parts) {
+        if (parts.length < 3) {
+            telegramClient.sendMessage(chatId, "사용방법: /add [종목코드] [종목명 \n예) /add 041510 에스엠");
+            return;
+        }
+
+        String stockCode = parts[1];
+        String stockName = parts[2];
+
+        boolean added = subscriptionService.add(chatId, stockCode, stockName);
+        if (added) {
+            telegramClient.sendMessage(chatId, "<b>" + stockName + "</b>(" + stockCode + ") 구독을 시작했습니다.");
+        } else {
+            telegramClient.sendMessage(chatId, "이미 구독중인 종목입니다: <b>" + stockName + "</b>(" + stockCode + ")");
+        }
+    }
+
+    private void handleRemove(long chatId, String[] parts) {
+        if (parts.length < 2) {
+            telegramClient.sendMessage(chatId, "사용법: /remove [종목코드]\n예) /remove 041510");
+            return ;
+        }
+
+        String stockCode = parts[1];
+
+        boolean removed = subscriptionService.remove(chatId, stockCode);
+        if (removed) {
+            telegramClient.sendMessage(chatId, stockCode + " 구독을 취소했습니다.");
+        } else {
+            telegramClient.sendMessage(chatId, "구독중이 아닌 종목입니다: " + stockCode);
+        }
+    }
+
+    private void handleList(long chatId) {
+        List<Subscription> list = subscriptionService.list(chatId);
+        if (list.isEmpty()) {
+            telegramClient.sendMessage(chatId, "구독중인 종목이 없습니다. \n/add [종목코드] 종목명] 으로 추가하세요.");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder("<b>구독 종목 목록</b>\n\n");
+        for (Subscription s : list) {
+            sb.append("* ").append(s.getStockName())
+                    .append(" (").append(s.getStockCode()).append(")\n");
+        }
+
+        telegramClient.sendMessage(chatId, sb.toString());
     }
 }
