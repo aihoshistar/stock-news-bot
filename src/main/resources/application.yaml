@@ -7,6 +7,7 @@ spring:
     driver-class-name: org.sqlite.JDBC
 
   jpa:
+    open-in-view: false # HTTP 요청 전체 생명주기 동안 DB 커넥션을 열어두는 옵션
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     hibernate:
       ddl-auto: update
