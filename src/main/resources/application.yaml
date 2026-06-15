@@ -30,3 +30,7 @@ app:
   telegram:
     token: ${TELEGRAM_TOKEN}
     polling-timeout: 30
+  naver:
+    client-id: ${NAVER_CLIENT_ID}
+    client-secret: ${NAVER_CLIENT_SECRET}
+    news-display: 20
