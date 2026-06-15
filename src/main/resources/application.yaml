@@ -25,3 +25,8 @@ management:
 logging:
   level:
     com.example.stockbot: DEBUG
+
+app:
+  telegram:
+    token: ${TELEGRAM_TOKEN}
+    polling-timeout: 30
