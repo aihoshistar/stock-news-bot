@@ -9,22 +9,12 @@ spring:
   jpa:
     open-in-view: false # HTTP 요청 전체 생명주기 동안 DB 커넥션을 열어두는 옵션
     database-platform: org.hibernate.community.dialect.SQLiteDialect
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
 
 management:
   endpoints:
     web:
       exposure:
         include: health
-
-logging:
-  level:
-    com.example.stockbot: DEBUG
 
 app:
   telegram:
