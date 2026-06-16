@@ -3,6 +3,7 @@ package com.example.stocknewsbot.scheduler;
 import com.example.stocknewsbot.domain.SentNewsRepository;
 import com.example.stocknewsbot.news.NewsService;
 import com.example.stocknewsbot.price.PriceService;
+import com.example.stocknewsbot.price.VolatilityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,13 +19,18 @@ public class ScheduledTasks {
 
     private final NewsService newsService;
     private final PriceService priceService;
+    private final VolatilityService volatilityService;
 
     private final SentNewsRepository sentNewsRepository;
 
-    public ScheduledTasks(NewsService newsService, SentNewsRepository sentNewsRepository, PriceService priceService) {
+    public ScheduledTasks(NewsService newsService,
+                          SentNewsRepository sentNewsRepository,
+                          PriceService priceService,
+                          VolatilityService volatilityService) {
         this.newsService = newsService;
         this.sentNewsRepository = sentNewsRepository;
         this.priceService = priceService;
+        this.volatilityService = volatilityService;
     }
 
     // 5분마다 뉴스 폴링
@@ -47,5 +53,11 @@ public class ScheduledTasks {
     public void sendScheduledPrice() {
         log.debug("정기 시세 발송 시작");
         priceService.sendScheduledPrice();
+    }
+
+    @Scheduled(cron = "0 0/2 9-15 * * MON-FRI")
+    public void checkVolatility() {
+        log.debug("급변동 체크 시작");
+        volatilityService.checkVolatility();
     }
 }
