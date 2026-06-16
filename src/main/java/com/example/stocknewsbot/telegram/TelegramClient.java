@@ -3,6 +3,7 @@ package com.example.stocknewsbot.telegram;
 import com.example.stocknewsbot.config.AppProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -13,15 +14,23 @@ import java.util.Map;
 public class TelegramClient {
     private static final Logger log = LoggerFactory.getLogger(TelegramClient.class);
     private static final String BASE_URL = "https://api.telegram.org";
+    private static final int TIMEOUT_MS = 10_000; // 10초 타임아웃
 
     private final RestClient restClient;
     private final String token;
     private final long pollingTimeout;
+    private final TelegramHealthManager telegramHealthManager;
 
-    public TelegramClient(AppProperties appProperties) {
+    public TelegramClient(AppProperties appProperties, TelegramHealthManager telegramHealthManager) {
         this.token = appProperties.telegram().token();
         this.pollingTimeout = appProperties.telegram().pollingTimeout();
-        this.restClient = RestClient.builder().baseUrl(BASE_URL).build();
+        this.telegramHealthManager = telegramHealthManager;
+
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(TIMEOUT_MS);
+        factory.setReadTimeout((int) (pollingTimeout * 1000) + TIMEOUT_MS);
+
+        this.restClient = RestClient.builder().baseUrl(BASE_URL).requestFactory(factory).build();
     }
 
     /**
@@ -30,14 +39,22 @@ public class TelegramClient {
      * @param text      전송 HTML 메세지
      */
     public void sendMessage(long chatId, String text) {
+        if (telegramHealthManager.isSleeping()) {
+            log.debug("Sleep 중 — sendMessage 스킵 chatId={}", chatId);
+            return;
+        }
+
         try {
             restClient.post().uri("/bot{token}/sendMessage", token).body(Map.of(
                     "chat_id", chatId,
                     "text", text,
                     "parse_mode", "HTML"
             )).retrieve().toBodilessEntity();
+
+            telegramHealthManager.recordSuccess();
         } catch (Exception e) {
-            log.error("텔레그렘 메세지 전송 실패 chatId={}: {}", chatId, e.getMessage());
+            log.error("텔레그램 메시지 전송 실패 chatId={}: {}", chatId, e.getMessage());
+            telegramHealthManager.recordFailure();
         }
     }
 

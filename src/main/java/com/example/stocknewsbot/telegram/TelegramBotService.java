@@ -20,13 +20,16 @@ public class TelegramBotService {
     private final TelegramClient telegramClient;
     private final SubscriptionService subscriptionService;
     private final PriceService priceService;
+    private final TelegramHealthManager telegramHealthManager;
 
+    private boolean wasSleeping = false;
     private long offset = 0;
 
-    public TelegramBotService(TelegramClient telegramClient, SubscriptionService subscriptionService, PriceService priceService) {
+    public TelegramBotService(TelegramClient telegramClient, SubscriptionService subscriptionService, PriceService priceService, TelegramHealthManager telegramHealthManager) {
         this.telegramClient = telegramClient;
         this.subscriptionService = subscriptionService;
         this.priceService = priceService;
+        this.telegramHealthManager = telegramHealthManager;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -38,13 +41,25 @@ public class TelegramBotService {
     private void pollingLoop() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                if (telegramHealthManager.isSleeping()) {
+                    wasSleeping = true;
+                    sleep(60_000); // sleep 중 1분마다 체크
+                    continue;
+                }
+
+                // sleep 해제 후 첫 성공 시 복구 알림
+                if (wasSleeping) {
+                    wasSleeping = false;
+                    telegramHealthManager.notifyRecovery();
+                }
+
                 List<Map<String, Object>> updates = telegramClient.getUpdates(offset);
                 for (Map<String, Object> update : updates) {
                     handleUpdate(update);
                     offset = ((Number) update.get("update_id")).longValue() + 1;
                 }
             } catch (Exception e) {
-                log.error("폴링 에라: {}", e.getMessage());
+                log.error("폴링 루프 오류: {}", e.getMessage());
                 sleep(5_000);
             }
         }
