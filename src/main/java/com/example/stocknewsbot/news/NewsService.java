@@ -1,5 +1,7 @@
 package com.example.stocknewsbot.news;
 
+import com.example.stocknewsbot.ai.ClaudeClient;
+import com.example.stocknewsbot.ai.ClaudeClient.NewsAnalysis;
 import com.example.stocknewsbot.common.TextUtil;
 import com.example.stocknewsbot.domain.SentNews;
 import com.example.stocknewsbot.domain.SentNewsRepository;
@@ -22,15 +24,19 @@ public class NewsService {
     private final SentNewsRepository sentNewsRepository;
     private final SubscriptionService subscriptionService;
     private final TelegramClient telegramClient;
+    private final ClaudeClient claudeClient;
 
     public NewsService(NaverNewsClient naverNewsClient,
                        SentNewsRepository sentNewsRepository,
                        SubscriptionService subscriptionService,
-                       TelegramClient telegramClient) {
+                       TelegramClient telegramClient,
+                       ClaudeClient claudeClient
+                       ) {
         this.naverNewsClient = naverNewsClient;
         this.sentNewsRepository = sentNewsRepository;
         this.subscriptionService = subscriptionService;
         this.telegramClient = telegramClient;
+        this.claudeClient = claudeClient;
     }
 
     @Transactional
@@ -57,7 +63,10 @@ public class NewsService {
             String title = TextUtil.escapeHtml(
                     TextUtil.stripHtml((String) news.get("title"))
             );
-            String message = buildMessage(subscription, title, link);
+
+            NewsAnalysis analysis = claudeClient.analyze(subscription.getStockName(), title);
+
+            String message = buildMessage(subscription, title, link, analysis);
             telegramClient.sendMessage(subscription.getChatId(), message);
 
             sentNewsRepository.save(new SentNews(linkHash, subscription.getStockCode()));
@@ -66,10 +75,12 @@ public class NewsService {
         }
     }
 
-    private String buildMessage(Subscription subscription, String title, String link) {
+    private String buildMessage(Subscription subscription, String title, String link, NewsAnalysis analysis) {
         return "<b>" + subscription.getStockName()
-                + "</b> (" + subscription.getStockCode() + ")\n\n"
-                + title + "\n\n"
+                + "</b> (" + subscription.getStockCode() + ") "
+                + analysis.sentiment().emoji() + "\n\n"
+                + "<b>" + title + "</b>\n\n"
+                + analysis.summary() + "\n\n"
                 + "<a href=\"" + link + "\">기사 읽기</a>";
     }
 }
