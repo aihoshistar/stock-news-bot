@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 public interface SentNewsRepository extends JpaRepository<SentNews, Long> {
 
-    boolean existsAllByLinkHash(String linkHash);
+    boolean existsByLinkHash(String linkHash);
 
     @Modifying
     @Query("DELETE FROM SentNews WHERE sentAt < :cutoff")

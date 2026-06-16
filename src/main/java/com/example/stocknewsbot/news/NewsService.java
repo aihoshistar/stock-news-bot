@@ -58,7 +58,7 @@ public class NewsService {
 
             String linkHash = TextUtil.sha256(link);
 
-            if (sentNewsRepository.existsAllByLinkHash(linkHash)) continue;
+            if (sentNewsRepository.existsByLinkHash(linkHash)) continue;
 
             String title = TextUtil.escapeHtml(
                     TextUtil.stripHtml((String) news.get("title"))
