@@ -25,18 +25,21 @@ public class NewsService {
     private final SubscriptionService subscriptionService;
     private final TelegramClient telegramClient;
     private final AiClient aiClient;
+    private final TfIdfSimilarityFilter tfIdfSimilarityFilter;
 
     public NewsService(NaverNewsClient naverNewsClient,
                        SentNewsRepository sentNewsRepository,
                        SubscriptionService subscriptionService,
                        TelegramClient telegramClient,
-                       AiClient aiClient
+                       AiClient aiClient,
+                       TfIdfSimilarityFilter tfIdfSimilarityFilter
                        ) {
         this.naverNewsClient = naverNewsClient;
         this.sentNewsRepository = sentNewsRepository;
         this.subscriptionService = subscriptionService;
         this.telegramClient = telegramClient;
         this.aiClient = aiClient;
+        this.tfIdfSimilarityFilter = tfIdfSimilarityFilter;
     }
 
     @Transactional
@@ -50,28 +53,49 @@ public class NewsService {
     }
 
     private void processSubscription(Subscription subscription) {
-        List<Map<String, Object>> newsList = naverNewsClient.searchNews(subscription.getStockName());
+        List<Map<String, Object>> newsList =
+                naverNewsClient.searchNews(subscription.getStockName());
 
-        for (Map<String, Object> news : newsList) {
+        // 1. 중복 발송 이력 필터
+        List<Map<String, Object>> unseenNews = newsList.stream()
+                .filter(news -> {
+                    String link = (String) news.get("link");
+                    return link != null
+                            && !sentNewsRepository.existsByLinkHash(TextUtil.sha256(link));
+                })
+                .toList();
+
+        if (unseenNews.isEmpty()) return;
+
+        // 2. TF-IDF 코사인 유사도를 사용해 유사 뉴스 필터
+        List<String> titles = unseenNews.stream()
+                .map(news -> TextUtil.stripHtml((String) news.getOrDefault("title", "")))
+                .toList();
+
+        List<Integer> selectedIndices = tfIdfSimilarityFilter.filterSimilar(titles);
+        int filtered = unseenNews.size() - selectedIndices.size();
+        if (filtered > 0) {
+            log.debug("유사 뉴스 제거 stockCode={} 제거={}건",
+                    subscription.getStockCode(), filtered);
+        }
+
+        // 3. 선택된 뉴스만 발송
+        for (int idx : selectedIndices) {
+            Map<String, Object> news = unseenNews.get(idx);
             String link = (String) news.get("link");
-            if (link == null) continue;
+            String title = TextUtil.escapeHtml(titles.get(idx));
 
-            String linkHash = TextUtil.sha256(link);
+            NewsAnalysis analysis = aiClient.analyze(
+                    subscription.getStockName(), title);
 
-            if (sentNewsRepository.existsByLinkHash(linkHash)) continue;
+            telegramClient.sendMessage(subscription.getChatId(),
+                    buildMessage(subscription, title, link, analysis));
 
-            String title = TextUtil.escapeHtml(
-                    TextUtil.stripHtml((String) news.get("title"))
-            );
+            sentNewsRepository.save(
+                    new SentNews(TextUtil.sha256(link), subscription.getStockCode()));
 
-            NewsAnalysis analysis = aiClient.analyze(subscription.getStockName(), title);
-
-            String message = buildMessage(subscription, title, link, analysis);
-            telegramClient.sendMessage(subscription.getChatId(), message);
-
-            sentNewsRepository.save(new SentNews(linkHash, subscription.getStockCode()));
-
-            log.debug("뉴스 발송 stockCode={} title={}", subscription.getStockCode(), title);
+            log.debug("뉴스 발송 stockCode={} sentiment={} title={}",
+                    subscription.getStockCode(), analysis.sentiment(), title);
         }
     }
 
