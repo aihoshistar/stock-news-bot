@@ -46,3 +46,5 @@ app:
     app-key: ${KIS_APP_KEY}
     app-secret: ${KIS_APP_SECRET}
     virtual: false
+  alert:
+    volatility-threshold: 3.0
