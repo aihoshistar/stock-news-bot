@@ -34,3 +34,7 @@ app:
     client-id: ${NAVER_CLIENT_ID}
     client-secret: ${NAVER_CLIENT_SECRET}
     news-display: 20
+  claude:
+    api-key: ${CLAUDE_API_KEY}
+    model: claude-haiku-4-5-20251001
+    max-tokens: 1024
