@@ -1,6 +1,7 @@
 package com.example.stocknewsbot.telegram;
 
 import com.example.stocknewsbot.domain.Subscription;
+import com.example.stocknewsbot.price.PriceService;
 import com.example.stocknewsbot.subscription.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +19,14 @@ public class TelegramBotService {
 
     private final TelegramClient telegramClient;
     private final SubscriptionService subscriptionService;
+    private final PriceService priceService;
+
     private long offset = 0;
 
-    public TelegramBotService(TelegramClient telegramClient, SubscriptionService subscriptionService) {
+    public TelegramBotService(TelegramClient telegramClient, SubscriptionService subscriptionService, PriceService priceService) {
         this.telegramClient = telegramClient;
         this.subscriptionService = subscriptionService;
+        this.priceService = priceService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -64,7 +68,8 @@ public class TelegramBotService {
             case "/start"   -> sendHelp(chatId);
             case "/add"     -> handleAdd(chatId, parts);
             case "/remove"  -> handleRemove(chatId, parts);
-            case "/list"     -> handleList(chatId);
+            case "/list"    -> handleList(chatId);
+            case "/price"   -> handlePrice(chatId, parts);
             default         -> telegramClient.sendMessage(chatId,"알 수 없는 명령입니다. /start 으로 도움말을 확인하세요");
         }
     }
@@ -137,5 +142,13 @@ public class TelegramBotService {
         }
 
         telegramClient.sendMessage(chatId, sb.toString());
+    }
+
+    private void handlePrice(long chatId, String[] parts) {
+        if (parts.length < 2) {
+            telegramClient.sendMessage(chatId, "사용법: /price [종목코드]\n예) /price 041510");
+            return;
+        }
+        priceService.sendPrice(chatId, parts[1]);
     }
 }
