@@ -38,3 +38,7 @@ app:
     api-key: ${CLAUDE_API_KEY}
     model: claude-haiku-4-5-20251001
     max-tokens: 1024
+  gemini:
+    api-key: ${GEMINI_API_KEY}
+    model: gemini-3.1-flash-lite
+    max-tokens: 1024
