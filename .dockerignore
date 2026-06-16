@@ -1,0 +1,23 @@
+# .dockerignore
+
+# Gradle
+.gradle/
+build/
+
+# IDE
+.idea/
+*.iml
+
+# 환경변수
+.env
+
+# 로컬 데이터
+data/
+
+# Git
+.git/
+.gitignore
+
+# 문서
+README.md
+docs/
