@@ -48,3 +48,5 @@ app:
     virtual: false
   alert:
     volatility-threshold: 3.0
+  dart:
+    api-key: ${DART_API_KEY}
