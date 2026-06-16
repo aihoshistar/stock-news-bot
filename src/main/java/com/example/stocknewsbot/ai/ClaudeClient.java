@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class ClaudeClient {
+public class ClaudeClient implements AiClient {
+
     private static final Logger log = LoggerFactory.getLogger(ClaudeClient.class);
     private static final String BASE_URL = "https://api.anthropic.com";
     private static final String ANTHROPIC_VERSION = "2023-06-01";
@@ -24,7 +25,7 @@ public class ClaudeClient {
 
     public ClaudeClient(AppProperties appProperties, ObjectMapper objectMapper) {
         this.model = appProperties.claude().model();
-        this.maxTokens = appProperties.claude().maxToken();
+        this.maxTokens = appProperties.claude().maxTokens();
         this.objectMapper = objectMapper;
         this.restClient = RestClient.builder().baseUrl(BASE_URL)
                 .defaultHeader("x-api-key", appProperties.claude().apiKey())
@@ -39,14 +40,14 @@ public class ClaudeClient {
      * @param title     뉴스 제목
      * @return          분석 결과 (요약, 시장 심리)
      */
+    @Override
     public NewsAnalysis analyze(String stockName, String title) {
         String prompt = buildPrompt(stockName, title);
-
         try {
             Map<String, Object> requestBody = Map.of(
                     "model", model,
                     "max_tokens", maxTokens,
-                    "message", List.of(
+                    "messages", List.of(
                             Map.of("role", "user", "content", prompt)
                     )
             );
@@ -99,31 +100,5 @@ public class ClaudeClient {
                   "sentiment": "POSITIVE 또는 NEUTRAL 또는 NEGATIVE 중 하나"
                 }
                 """.formatted(stockName, title);
-    }
-
-    public record NewsAnalysis(String summary, Sentiment sentiment) {
-        public static NewsAnalysis fallback(String title) {
-            return new NewsAnalysis(title, Sentiment.NEUTRAL);
-        }
-    }
-
-    public enum Sentiment {
-        POSITIVE, NEUTRAL, NEGATIVE;
-
-        public static Sentiment from(String value) {
-            try {
-                return Sentiment.valueOf(value.toUpperCase());
-            } catch (Exception e) {
-                return NEUTRAL;
-            }
-        }
-
-        public String emoji() {
-            return switch (this) {
-                case POSITIVE -> "📈";
-                case NEGATIVE -> "📉";
-                case NEUTRAL  -> "➡️";
-            };
-        }
     }
 }

@@ -8,7 +8,7 @@ public record AppProperties(Telegram telegram, Naver naver, Claude claude, Gemin
 
     public record Naver(String clientId, String clientSecret, int newsDisplay) {}
 
-    public record Claude(String apiKey, String model, int maxToken ) {}
+    public record Claude(String apiKey, String model, int maxTokens ) {}
 
     public record Gemini(String apiKey, String model, int maxTokens ) {}
 }

@@ -1,7 +1,7 @@
 package com.example.stocknewsbot.news;
 
-import com.example.stocknewsbot.ai.ClaudeClient;
-import com.example.stocknewsbot.ai.ClaudeClient.NewsAnalysis;
+import com.example.stocknewsbot.ai.AiClient;
+import com.example.stocknewsbot.ai.AiClient.NewsAnalysis;
 import com.example.stocknewsbot.common.TextUtil;
 import com.example.stocknewsbot.domain.SentNews;
 import com.example.stocknewsbot.domain.SentNewsRepository;
@@ -24,19 +24,19 @@ public class NewsService {
     private final SentNewsRepository sentNewsRepository;
     private final SubscriptionService subscriptionService;
     private final TelegramClient telegramClient;
-    private final ClaudeClient claudeClient;
+    private final AiClient aiClient;
 
     public NewsService(NaverNewsClient naverNewsClient,
                        SentNewsRepository sentNewsRepository,
                        SubscriptionService subscriptionService,
                        TelegramClient telegramClient,
-                       ClaudeClient claudeClient
+                       AiClient aiClient
                        ) {
         this.naverNewsClient = naverNewsClient;
         this.sentNewsRepository = sentNewsRepository;
         this.subscriptionService = subscriptionService;
         this.telegramClient = telegramClient;
-        this.claudeClient = claudeClient;
+        this.aiClient = aiClient;
     }
 
     @Transactional
@@ -64,7 +64,7 @@ public class NewsService {
                     TextUtil.stripHtml((String) news.get("title"))
             );
 
-            NewsAnalysis analysis = claudeClient.analyze(subscription.getStockName(), title);
+            NewsAnalysis analysis = aiClient.analyze(subscription.getStockName(), title);
 
             String message = buildMessage(subscription, title, link, analysis);
             telegramClient.sendMessage(subscription.getChatId(), message);
