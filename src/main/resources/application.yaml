@@ -40,3 +40,5 @@ app:
     volatility-threshold: 3.0
   dart:
     api-key: ${DART_API_KEY}
+  discord:
+    webhook-url: ${DISCORD_WEBHOOK_URL:}
