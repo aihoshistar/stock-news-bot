@@ -28,7 +28,7 @@ class ClaudeClientTest {
         AppProperties.Claude claudeProps =
                 new AppProperties.Claude("test-api-key", "claude-test", 1024);
         appProperties = new AppProperties(
-                new AppProperties.Telegram("token", 30),
+                new AppProperties.Telegram("token", 30, "", ""),
                 new AppProperties.Naver("id", "secret", 20),
                 claudeProps,
                 new AppProperties.Gemini("key", "model", 1024),
