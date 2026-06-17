@@ -20,6 +20,8 @@ app:
   telegram:
     token: ${TELEGRAM_TOKEN}
     polling-timeout: 30
+    webhook-url: ${TELEGRAM_WEBHOOK_URL:}
+    webhook-secret-token: ${TELEGRAM_WEBHOOK_SECRET_TOKEN:}
   naver:
     client-id: ${NAVER_CLIENT_ID}
     client-secret: ${NAVER_CLIENT_SECRET}

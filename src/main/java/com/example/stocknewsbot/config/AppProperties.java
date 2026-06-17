@@ -4,7 +4,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app")
 public record AppProperties(Telegram telegram, Naver naver, Claude claude, Gemini gemini, Kis kis, Alert alert, Dart dart, Discord discord) {
-    public record Telegram(String token, long pollingTimeout) {}
+    public record Telegram(String token, long pollingTimeout, String webhookUrl, String webhookSecretToken) {
+        public boolean isWebhookMode() {
+            return webhookUrl != null && !webhookUrl.isBlank();
+        }
+    }
 
     public record Naver(String clientId, String clientSecret, int newsDisplay) {}
 

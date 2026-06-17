@@ -1,5 +1,6 @@
 package com.example.stocknewsbot.telegram;
 
+import com.example.stocknewsbot.config.AppProperties;
 import com.example.stocknewsbot.domain.Subscription;
 import com.example.stocknewsbot.price.PriceService;
 import com.example.stocknewsbot.subscription.SubscriptionService;
@@ -22,18 +23,25 @@ public class TelegramBotService {
     private final PriceService priceService;
     private final TelegramHealthManager telegramHealthManager;
 
+    private final boolean webhookMode;
+
     private boolean wasSleeping = false;
     private long offset = 0;
 
-    public TelegramBotService(TelegramClient telegramClient, SubscriptionService subscriptionService, PriceService priceService, TelegramHealthManager telegramHealthManager) {
+    public TelegramBotService(TelegramClient telegramClient, SubscriptionService subscriptionService, PriceService priceService, TelegramHealthManager telegramHealthManager, AppProperties appProperties) {
         this.telegramClient = telegramClient;
         this.subscriptionService = subscriptionService;
         this.priceService = priceService;
         this.telegramHealthManager = telegramHealthManager;
+        this.webhookMode = appProperties.telegram().isWebhookMode();
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void startPolling() {
+        if (webhookMode) {
+            log.info("텔레그램 Webhook 모드로 동작 중");
+            return;
+        }
         Thread.ofVirtual().name("telegram-polling").start(this::pollingLoop);
         log.info("텔레그름 롱 폴링 시작");
     }
@@ -66,7 +74,7 @@ public class TelegramBotService {
     }
 
     @SuppressWarnings("unchecked")
-    private void handleUpdate(Map<String, Object> update) {
+    public void handleUpdate(Map<String, Object> update) {
         Map<String, Object> message = (Map<String, Object>) update.get("message");
         if (message == null) return;
 
