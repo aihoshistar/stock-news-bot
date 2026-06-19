@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long> {
     List<PriceHistory> findByQueriedAtAfterOrderByQueriedAtDesc(LocalDateTime after);
+    long countByQueriedAtAfter(LocalDateTime after);
 }

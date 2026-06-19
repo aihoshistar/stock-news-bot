@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title} + ' - Stock News Bot'">Stock News Bot</title>
+    <meta http-equiv="refresh" th:if="${autoRefresh}" content="30">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <a href="/" class="brand">Stock News Bot</a>
+    <div class="nav-links">
+        <a href="/" th:class="${activeTab == 'dashboard'} ? 'active' : ''">대시보드</a>
+        <a href="/subscriptions" th:class="${activeTab == 'subscriptions'} ? 'active' : ''">구독 현황</a>
+        <a href="/history" th:class="${activeTab == 'history'} ? 'active' : ''">발송 이력</a>
+        <a href="/logs" th:class="${activeTab == 'logs'} ? 'active' : ''">로그</a>
+    </div>
+</nav>
+<main th:insert="${content}"></main>
+</body>
+</html>

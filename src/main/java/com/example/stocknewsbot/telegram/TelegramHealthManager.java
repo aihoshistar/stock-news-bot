@@ -91,4 +91,8 @@ public class TelegramHealthManager {
                         + "복구 시간: " + wakeTime
         );
     }
+
+    public String getStatusText() {
+        return isSleeping() ?  "Sleep 중 (응답 없음)" : "정상";
+    }
 }

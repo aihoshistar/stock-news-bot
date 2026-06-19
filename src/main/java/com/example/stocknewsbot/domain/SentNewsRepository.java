@@ -13,4 +13,6 @@ public interface SentNewsRepository extends JpaRepository<SentNews, Long> {
     @Modifying
     @Query("DELETE FROM SentNews WHERE sentAt < :cutoff")
     void deleteOlderThan(LocalDateTime cutoff);
+
+    long countBySentAtAfter(LocalDateTime after);
 }

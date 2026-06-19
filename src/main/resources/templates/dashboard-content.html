@@ -1,0 +1,35 @@
+<div th:fragment="dashboard-content">
+
+    <h1 style="margin-bottom: 1.5rem;">대시보드</h1>
+
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="card">
+            <div style="color: #636e72; font-size: 0.9rem;">구독 종목 수</div>
+            <div style="font-size: 2rem; font-weight: bold;" th:text="${subscriptionCount}">0</div>
+        </div>
+        <div class="card">
+            <div style="color: #636e72; font-size: 0.9rem;">오늘 뉴스/공시 발송</div>
+            <div style="font-size: 2rem; font-weight: bold;" th:text="${todayNewsCount}">0</div>
+        </div>
+        <div class="card">
+            <div style="color: #636e72; font-size: 0.9rem;">오늘 시세 조회</div>
+            <div style="font-size: 2rem; font-weight: bold;" th:text="${todayPriceCount}">0</div>
+        </div>
+        <div class="card">
+            <div style="color: #636e72; font-size: 0.9rem;">오늘 급변동 알림</div>
+            <div style="font-size: 2rem; font-weight: bold;" th:text="${todayVolatilityCount}">0</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom: 0.8rem;">텔레그램 봇 상태</h3>
+        <span class="badge"
+              th:class="${telegramStatus == '정상'} ? 'badge positive' : 'badge negative'"
+              th:text="${telegramStatus}">정상</span>
+    </div>
+
+    <div class="card" style="margin-top: 1rem; color: #636e72; font-size: 0.85rem;">
+        이 페이지는 30초마다 자동 갱신됩니다.
+    </div>
+
+</div>

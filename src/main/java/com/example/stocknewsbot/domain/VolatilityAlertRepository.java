@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface VolatilityAlertRepository extends JpaRepository<VolatilityAlert, Long> {
     List<VolatilityAlert> findByOccurredAtAfterOrderByOccurredAtDesc(LocalDateTime after);
+    long countByOccurredAtAfter(LocalDateTime after);
 }
