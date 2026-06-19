@@ -92,7 +92,7 @@ public class NewsService {
                     buildMessage(subscription, title, link, analysis));
 
             sentNewsRepository.save(
-                    new SentNews(TextUtil.sha256(link), subscription.getStockCode()));
+                    new SentNews(TextUtil.sha256(link), subscription.getStockCode(), subscription.getStockName()));
 
             log.debug("뉴스 발송 stockCode={} sentiment={} title={}",
                     subscription.getStockCode(), analysis.sentiment(), title);

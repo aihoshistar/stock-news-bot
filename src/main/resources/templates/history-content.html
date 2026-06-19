@@ -1,0 +1,49 @@
+<div th:fragment="history-content">
+
+    <h1 style="margin-bottom: 1rem;">발송 이력</h1>
+
+    <div class="card" style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+        <a th:href="@{/history(days=1)}"
+           th:style="${selectedDays == 1} ? 'font-weight:bold; color:#00b894;' : 'color:#636e72;'"
+           style="text-decoration: none;">오늘</a>
+        <span style="color:#ccc;">|</span>
+        <a th:href="@{/history(days=3)}"
+           th:style="${selectedDays == 3} ? 'font-weight:bold; color:#00b894;' : 'color:#636e72;'"
+           style="text-decoration: none;">3일</a>
+        <span style="color:#ccc;">|</span>
+        <a th:href="@{/history(days=7)}"
+           th:style="${selectedDays == 7} ? 'font-weight:bold; color:#00b894;' : 'color:#636e72;'"
+           style="text-decoration: none;">7일</a>
+    </div>
+
+    <div class="card">
+        <table th:if="${!timeline.isEmpty()}">
+            <thead>
+            <tr>
+                <th>시각</th>
+                <th>구분</th>
+                <th>종목</th>
+                <th>내용</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${timeline}">
+                <td th:text="${#temporals.format(item.occurredAt, 'MM-dd HH:mm')}">06-19 12:00</td>
+                <td>
+                    <span th:text="${item.type.icon} + ' ' + ${item.type.label}">뉴스/공시</span>
+                </td>
+                <td th:text="${item.stockName} + ' (' + ${item.stockCode} + ')'">종목명 (000000)</td>
+                <td>
+                    <div th:text="${item.title}" style="font-weight: 500;">제목</div>
+                    <div th:text="${item.detail}" style="color: #636e72; font-size: 0.85rem;">상세</div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <p th:if="${timeline.isEmpty()}" style="color: #636e72;">
+            선택한 기간에 이력이 없습니다.
+        </p>
+    </div>
+
+</div>

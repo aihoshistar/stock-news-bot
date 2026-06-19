@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface SentNewsRepository extends JpaRepository<SentNews, Long> {
 
@@ -15,4 +16,6 @@ public interface SentNewsRepository extends JpaRepository<SentNews, Long> {
     void deleteOlderThan(LocalDateTime cutoff);
 
     long countBySentAtAfter(LocalDateTime after);
+
+    List<SentNews> findBySentAtAfterOrderBySentAtDesc(LocalDateTime after);
 }

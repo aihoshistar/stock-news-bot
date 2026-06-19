@@ -74,7 +74,7 @@ public class DartService {
             telegramClient.sendMessage(subscription.getChatId(), message);
 
             sentNewsRepository.save(
-                    new SentNews(linkHash, subscription.getStockCode()));
+                    new SentNews(linkHash, subscription.getStockCode(), subscription.getStockName()));
 
             log.debug("공시 발송 stockCode={} report={}",
                     subscription.getStockCode(), reportName);
