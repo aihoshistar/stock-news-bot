@@ -12,11 +12,14 @@ import java.util.Map;
 public class KisClient {
     private static final Logger log = LoggerFactory.getLogger(KisClient.class);
 
+    private static final long MIN_INTERVAL_MS = 60L;
+
     private final RestClient restClient;
     private final KisTokenManager tokenManager;
     private final String appKey;
     private final String appSecret;
     private final boolean virtual;
+    private long lastCallTime = 0L;
 
     public KisClient(AppProperties appProperties, KisTokenManager tokenManager) {
         AppProperties.Kis kis = appProperties.kis();
@@ -40,6 +43,7 @@ public class KisClient {
     @SuppressWarnings("unchecked")
     public PriceInfo getCurrentPrice(String stockCode) {
         try {
+            throttle();
             String trId = virtual ? "VTTC8434R" : "FHKST01010100";
 
             Map<String, Object> response = restClient.get()
@@ -60,6 +64,21 @@ public class KisClient {
             log.error("KIS 실시간 가격 조회 실패 stockCode={}: {}", stockCode, e.getMessage());
             return null;
         }
+    }
+
+    private synchronized void throttle() {
+        long now = System.currentTimeMillis();
+        long elapsed = now - lastCallTime;
+
+        if (elapsed < MIN_INTERVAL_MS) {
+            long waitTime = MIN_INTERVAL_MS - elapsed;
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        lastCallTime = System.currentTimeMillis();
     }
 
     @SuppressWarnings("unchecked")
