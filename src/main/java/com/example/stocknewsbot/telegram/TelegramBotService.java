@@ -168,10 +168,10 @@ public class TelegramBotService {
     }
 
     private void handlePrice(long chatId, String[] parts) {
-        if (parts.length < 2) {
+        if (parts.length < 3) {
             telegramClient.sendMessage(chatId, "사용법: /price [종목코드]\n예) /price 041510");
             return;
         }
-        priceService.sendPrice(chatId, parts[1]);
+        priceService.sendPrice(chatId, parts[1], parts[2]);
     }
 }

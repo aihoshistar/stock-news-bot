@@ -28,13 +28,13 @@ public class PriceService {
     /**
      * /price 에 입력된 종목의 현재 가격을 조회 후 전송
      */
-    public void sendPrice(long chatid, String stockCode) {
+    public void sendPrice(long chatId, String stockCode, String stockName) {
         PriceInfo info = kisClient.getCurrentPrice(stockCode);
         if (info == null) {
-            telegramClient.sendMessage(chatid, "시세 조회 실패: " + stockCode + "\n종목코드를 확인해주세요.");
+            telegramClient.sendMessage(chatId, "시세 조회 실패: " + stockCode + "\n종목코드를 확인해주세요.");
             return;
         }
-        telegramClient.sendMessage(chatid, buildMessage(stockCode, stockCode, info));
+        telegramClient.sendMessage(chatId, buildMessage(stockCode, stockName, info));
     }
 
     /**
