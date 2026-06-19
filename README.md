@@ -121,6 +121,56 @@ curl http://localhost:8080/actuator/health
 
 ---
 
+## Webhook 모드 설정 (선택사항)
+
+- 기본값은 Long-polling이며, `TELEGRAM_WEBHOOK_URL` 환경변수를 설정하면 자동으로 Webhook 모드로 전환됨
+- Polling 을 많이 하다보니 텔레그램 서버에서 IP 를 차단해버리는 상황이 발생하여 Webhook 을 추가하게 되었음
+
+### 로컬 환경에서 Webhook 테스트 (ngrok 사용)
+
+```bash
+# 1. ngrok으로 로컬 8080 포트를 HTTPS로 터널링
+ngrok http 8080
+
+# 2. 발급된 주소 확인 (예시)
+# Forwarding   https://xxxx-xx-xx-xxx-xx.ngrok-free.app -> http://localhost:8080
+```
+
+### 환경변수 설정
+
+```env
+TELEGRAM_WEBHOOK_URL=https://xxxx-xx-xx-xxx-xx.ngrok-free.app/webhook/telegram
+TELEGRAM_WEBHOOK_SECRET_TOKEN=임의의_랜덤_문자열
+```
+
+### 텔레그램에 Webhook 등록
+
+```bash
+curl -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/setWebhook" \
+  -d "url=https://xxxx-xx-xx-xxx-xx.ngrok-free.app/webhook/telegram" \
+  -d "secret_token=${TELEGRAM_WEBHOOK_SECRET_TOKEN}"
+```
+
+### 등록 상태 확인
+
+```bash
+curl "https://api.telegram.org/bot${TELEGRAM_TOKEN}/getWebhookInfo"
+```
+
+### Long-polling으로 되돌리기
+
+```bash
+curl "https://api.telegram.org/bot${TELEGRAM_TOKEN}/deleteWebhook"
+```
+
+- `TELEGRAM_WEBHOOK_URL`을 비우고 재시작하면 Long-polling으로 자동 전환됨
+- deleteWebhook 을 꼭 하지는 않아도 됨
+
+> ngrok 무료 플랜은 재시작마다 URL이 바뀌므로, 재시작 시 Webhook을 다시 등록해야 함 
+> 텔레그램은 Webhook URL에 `https`와 `443, 80, 88, 8443` 포트만 허용함
+
+---
+
 ## 아키텍처 특징
 
 **Long-polling 방식 채택**
