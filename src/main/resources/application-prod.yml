@@ -3,8 +3,3 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
-
-logging:
-  level:
-    com.example.stocknewsbot: INFO
-    root: WARN
