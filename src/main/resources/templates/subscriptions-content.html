@@ -1,0 +1,41 @@
+<div th:fragment="subscriptions-content">
+
+    <h1 style="margin-bottom: 1.5rem;">구독 현황</h1>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="card">
+            <div style="color: #636e72; font-size: 0.9rem;">구독 중인 종목 수</div>
+            <div style="font-size: 2rem; font-weight: bold;" th:text="${totalStocks}">0</div>
+        </div>
+        <div class="card">
+            <div style="color: #636e72; font-size: 0.9rem;">전체 구독 건수</div>
+            <div style="font-size: 2rem; font-weight: bold;" th:text="${totalSubscriptions}">0</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom: 1rem;">종목별 구독자 수</h3>
+
+        <table th:if="${!stocks.isEmpty()}">
+            <thead>
+            <tr>
+                <th>종목명</th>
+                <th>종목코드</th>
+                <th>구독자 수</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="stock : ${stocks}">
+                <td th:text="${stock.stockName}">종목명</td>
+                <td th:text="${stock.stockCode}">000000</td>
+                <td th:text="${stock.subscriberCount} + '명'">0명</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <p th:if="${stocks.isEmpty()}" style="color: #636e72;">
+            아직 구독 중인 종목이 없습니다.
+        </p>
+    </div>
+
+</div>
