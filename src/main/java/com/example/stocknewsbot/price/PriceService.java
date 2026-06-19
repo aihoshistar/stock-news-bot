@@ -1,5 +1,7 @@
 package com.example.stocknewsbot.price;
 
+import com.example.stocknewsbot.domain.PriceHistory;
+import com.example.stocknewsbot.domain.PriceHistoryRepository;
 import com.example.stocknewsbot.domain.Subscription;
 import com.example.stocknewsbot.price.KisClient.PriceInfo;
 import com.example.stocknewsbot.subscription.SubscriptionService;
@@ -18,11 +20,13 @@ public class PriceService {
     private final KisClient kisClient;
     private final SubscriptionService subscriptionService;
     private final TelegramClient telegramClient;
+    private final PriceHistoryRepository priceHistoryRepository;
 
-    public PriceService(KisClient kisClient, SubscriptionService subscriptionService, TelegramClient telegramClient) {
+    public PriceService(KisClient kisClient, SubscriptionService subscriptionService, TelegramClient telegramClient, PriceHistoryRepository priceHistoryRepository) {
         this.kisClient = kisClient;
         this.subscriptionService = subscriptionService;
         this.telegramClient = telegramClient;
+        this.priceHistoryRepository = priceHistoryRepository;
     }
 
     /**
@@ -35,6 +39,7 @@ public class PriceService {
             return;
         }
         telegramClient.sendMessage(chatId, buildMessage(stockCode, stockName, info));
+        saveHistory(stockCode, stockName, info);
     }
 
     /**
@@ -59,6 +64,12 @@ public class PriceService {
             telegramClient.sendMessage(subscription.getChatId(), message);
             log.debug("시세 발송 stockCode={} price={}", subscription.getStockCode(), info.currentPrice());
         }
+    }
+
+    private void saveHistory(String stockCode, String stockName, PriceInfo info) {
+        priceHistoryRepository.save(new PriceHistory(
+                stockCode, stockName, info.currentPrice(), info.changeRate()
+        ));
     }
 
     private String buildMessage(String stockCode, String stockName, PriceInfo info) {

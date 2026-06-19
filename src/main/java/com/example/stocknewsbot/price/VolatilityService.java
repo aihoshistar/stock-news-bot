@@ -2,6 +2,8 @@ package com.example.stocknewsbot.price;
 
 import com.example.stocknewsbot.config.AppProperties;
 import com.example.stocknewsbot.domain.Subscription;
+import com.example.stocknewsbot.domain.VolatilityAlert;
+import com.example.stocknewsbot.domain.VolatilityAlertRepository;
 import com.example.stocknewsbot.price.KisClient.PriceInfo;
 import com.example.stocknewsbot.subscription.SubscriptionService;
 import com.example.stocknewsbot.telegram.TelegramClient;
@@ -19,16 +21,19 @@ public class VolatilityService {
     private final KisClient kisClient;
     private final SubscriptionService subscriptionService;
     private final TelegramClient telegramClient;
+    private final VolatilityAlertRepository volatilityAlertRepository;
+
     private final double threshold;
 
     // 메모리 캐싱
     private final Map<String, Long> basePrice = new ConcurrentHashMap<>();
 
-    public VolatilityService(KisClient kisClient, SubscriptionService subscriptionService, TelegramClient telegramClient, AppProperties appProperties) {
+    public VolatilityService(KisClient kisClient, SubscriptionService subscriptionService, TelegramClient telegramClient, AppProperties appProperties, VolatilityAlertRepository volatilityAlertRepository) {
         this.kisClient = kisClient;
         this.subscriptionService = subscriptionService;
         this.telegramClient = telegramClient;
         this.threshold = appProperties.alert().volatilityThreshold();
+        this.volatilityAlertRepository = volatilityAlertRepository;
     }
 
     public void checkVolatility() {
@@ -71,6 +76,13 @@ public class VolatilityService {
                 + "변동률: <b>" + String.format("%+.2f%%", changeRate) + "</b>";
 
         telegramClient.sendMessage(subscription.getChatId(), message);
+        volatilityAlertRepository.save(new VolatilityAlert(
+                subscription.getStockCode(),
+                subscription.getStockName(),
+                basePrice,
+                priceInfo.currentPrice(),
+                changeRate
+        ));
         log.info("급변동 알림 발송 stockCode={} changeRate={}%", subscription.getStockCode(), String.format("%.2f", changeRate));
     }
 }
