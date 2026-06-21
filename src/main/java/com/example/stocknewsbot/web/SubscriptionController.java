@@ -1,6 +1,7 @@
 package com.example.stocknewsbot.web;
 
 import com.example.stocknewsbot.domain.SubscriptionRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,7 @@ public class SubscriptionController {
     }
 
     @GetMapping("/subscriptions")
-    public String subscriptions(Model model) {
+    public String subscriptions(Model model, HttpServletRequest request) {
         List<StockSubscriptionView> views = new ArrayList<>();
         for (Object[] row : subscriptionRepository.countSubscribersByStock()) {
             views.add(new StockSubscriptionView(
@@ -37,11 +38,12 @@ public class SubscriptionController {
         model.addAttribute("autoRefresh", true);
         model.addAttribute("content", "subscriptions-content");
 
+
         model.addAttribute("stocks", views);
         model.addAttribute("totalStocks", totalStocks);
         model.addAttribute("totalSubscriptions", totalSubscriptions);
 
-        return "layout";
+        return FragmentViewResolver.resolve(request, "subscriptions-content", "subscriptions-content");
     }
 
     public record StockSubscriptionView(String stockCode, String stockName, Long subscriberCount) {}

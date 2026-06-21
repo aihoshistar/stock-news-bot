@@ -1,5 +1,6 @@
 package com.example.stocknewsbot.web;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,7 @@ public class LogController {
     }
 
     @GetMapping("/logs")
-    public String logs(Model model) {
+    public String logs(Model model, HttpServletRequest request) {
         model.addAttribute("title", "로그");
         model.addAttribute("activeTab", "logs");
         model.addAttribute("autoRefresh", true);
@@ -21,6 +22,6 @@ public class LogController {
 
         model.addAttribute("logLines", logFileReader.readRecentLines());
 
-        return "layout";
+        return FragmentViewResolver.resolve(request, "logs-content", "logs-content");
     }
 }

@@ -5,6 +5,8 @@ import com.example.stocknewsbot.domain.SentNewsRepository;
 import com.example.stocknewsbot.domain.SubscriptionRepository;
 import com.example.stocknewsbot.domain.VolatilityAlertRepository;
 import com.example.stocknewsbot.telegram.TelegramHealthManager;
+import com.example.stocknewsbot.web.FragmentViewResolver;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,25 +31,19 @@ public class DashboardController {
     }
 
     @GetMapping("/")
-    public String dashboard(Model model) {
+    public String dashboard(Model model, HttpServletRequest request) {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-
-        long subscriptionCount = subscriptionRepository.count();
-        long todayNewsCount = sentNewsRepository.countBySentAtAfter(todayStart);
-        long todayPriceCount = priceHistoryRepository.countByQueriedAtAfter(todayStart);
-        long todayVolatilityCount = volatilityAlertRepository.countByOccurredAtAfter(todayStart);
 
         model.addAttribute("title", "대시보드");
         model.addAttribute("activeTab", "dashboard");
-        model.addAttribute("autoRefresh", true);
         model.addAttribute("content", "dashboard-content");
 
-        model.addAttribute("subscriptionCount", subscriptionCount);
-        model.addAttribute("todayNewsCount", todayNewsCount);
-        model.addAttribute("todayPriceCount", todayPriceCount);
-        model.addAttribute("todayVolatilityCount", todayVolatilityCount);
+        model.addAttribute("subscriptionCount", subscriptionRepository.count());
+        model.addAttribute("todayNewsCount", sentNewsRepository.countBySentAtAfter(todayStart));
+        model.addAttribute("todayPriceCount", priceHistoryRepository.countByQueriedAtAfter(todayStart));
+        model.addAttribute("todayVolatilityCount", volatilityAlertRepository.countByOccurredAtAfter(todayStart));
         model.addAttribute("telegramStatus", telegramHealthManager.getStatusText());
 
-        return "layout";
+        return FragmentViewResolver.resolve(request, "dashboard-content", "dashboard-content");
     }
 }
