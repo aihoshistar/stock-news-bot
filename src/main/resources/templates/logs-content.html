@@ -1,0 +1,23 @@
+<div th:fragment="logs-content">
+
+    <h1 style="margin-bottom: 1rem;">로그 (최근 300줄)</h1>
+
+    <div class="card" style="padding: 0;">
+        <pre style="
+                background: #1e1e1e;
+                color: #d4d4d4;
+                padding: 1.2rem;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-size: 0.78rem;
+                line-height: 1.5;
+                max-height: 75vh;
+                overflow-y: auto;
+                margin: 0;
+        "><code th:each="line : ${logLines}"
+                th:text="${line} + '&#10;'"
+                th:style="${#strings.contains(line, 'ERROR')} ? 'color:#ff6b6b;' :
+                          (${#strings.contains(line, 'WARN')} ? 'color:#feca57;' : '')"></code></pre>
+    </div>
+
+</div>
